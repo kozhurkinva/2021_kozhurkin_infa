@@ -12,12 +12,13 @@ def window(x_w_start, y_w_start, x_w_finish, y_w_finish, x_w_center, y_w_center)
     :param x_w_center: x координата центральной части рамы
     :param y_w_center: y координата центральной части рамы
     """
-
-    pygame.draw.rect(screen, (255, 255, 255), (x_w_start, y_w_start, x_w_finish - x_w_start, y_w_finish - y_w_start))
-    pygame.draw.rect(screen, (0, 255, 255),
+    white = (255, 255, 255)
+    brown = (0, 255, 255)
+    pygame.draw.rect(screen, white, (x_w_start, y_w_start, x_w_finish - x_w_start, y_w_finish - y_w_start))
+    pygame.draw.rect(screen, brown,
                      (x_w_start + 10, y_w_start + 10, x_w_finish - x_w_start - 20, y_w_finish - y_w_start - 20))
-    pygame.draw.line(screen, (255, 255, 255), (x_w_center, y_w_start + 5), (x_w_center, y_w_finish - 5), 10)
-    pygame.draw.line(screen, (255, 255, 255), (x_w_start + 5, y_w_center), (x_w_finish - 5, y_w_center), 10)
+    pygame.draw.line(screen, white, (x_w_center, y_w_start + 5), (x_w_center, y_w_finish - 5), 10)
+    pygame.draw.line(screen, white, (x_w_start + 5, y_w_center), (x_w_finish - 5, y_w_center), 10)
 
 
 def tale(size, direction, center, color):
@@ -237,6 +238,7 @@ def head_eyes(size, direction, center, eye_color):
 
 
 def head_mustache(size, direction, center):
+    black = (0, 0, 0)
     """
     рисует усы кота по его координатам
     :param size: размер кота
@@ -244,17 +246,17 @@ def head_mustache(size, direction, center):
     :param center: координаты кота
     :return:
     """
-    pygame.draw.line(screen, (0, 0, 0), (center[0] - direction * size * 39, center[1] - size * 1),
+    pygame.draw.line(screen, black, (center[0] - direction * size * 39, center[1] - size * 1),
                      (center[0] - direction * size * 50, center[1] - size * 8))
-    pygame.draw.line(screen, (0, 0, 0), (center[0] - direction * size * 39.6, center[1]),
+    pygame.draw.line(screen, black, (center[0] - direction * size * 39.6, center[1]),
                      (center[0] - direction * size * 55, center[1] - size * 5))
-    pygame.draw.line(screen, (0, 0, 0), (center[0] - direction * size * 38.7, center[1] + size * 1.3),
+    pygame.draw.line(screen, black, (center[0] - direction * size * 38.7, center[1] + size * 1.3),
                      (center[0] - direction * size * 53, center[1] + size * 1.6))
-    pygame.draw.line(screen, (0, 0, 0), (center[0] - direction * size * 33, center[1]),
+    pygame.draw.line(screen, black, (center[0] - direction * size * 33, center[1]),
                      (center[0] - direction * size * 20, center[1] - size * 5))
-    pygame.draw.line(screen, (0, 0, 0), (center[0] - direction * size * 32.4, center[1] + size),
+    pygame.draw.line(screen, black, (center[0] - direction * size * 32.4, center[1] + size),
                      (center[0] - direction * size * 15, center[1] - size * 1))
-    pygame.draw.line(screen, (0, 0, 0), (center[0] - direction * size * 33, center[1] + size * 2.3),
+    pygame.draw.line(screen, black, (center[0] - direction * size * 33, center[1] + size * 2.3),
                      (center[0] - direction * size * 17, center[1] + size * 3.6))
 
 
@@ -292,25 +294,70 @@ def cat(size, direction, center, color, eye_color):
     head(size, direction, center, color, eye_color)
 
 
-def klubok(k_size, k_x, k_y, k_left):
+def clew_tale(c_size, c_center, c_direction):
+    """
+    рисует хвост клубка по его координатам
+    :param c_size: размер клубка
+    :param c_center: координаты клубка
+    :param c_direction: напрвление клубка
+    :return:
+    """
     for i in range(100):
         pygame.draw.line(screen, (0, 0, 0),
-                         (k_x - k_left * k_size * 0.25 * (i - 1), k_y + k_size * 5 * (1 + np.sin(i / 20))),
-                         (k_x - k_left * k_size * 0.25 * i, k_y + k_size * 5 * (1 + np.sin(i / 20))), 1)
-    pygame.draw.circle(screen, (150, 150, 150), (k_x, k_y), k_size * 10)
-    pygame.draw.circle(screen, (0, 0, 0), (k_x, k_y), k_size * 8, 2)
-    pygame.draw.circle(screen, (150, 150, 150), (k_x - k_left * 3, k_y + 3), k_size * 8 + k_left * 1)
-    pygame.draw.circle(screen, (0, 0, 0), (k_x - k_left * 2, k_y + 2), k_size * 6, 2)
-    pygame.draw.circle(screen, (150, 150, 150), (k_x - k_left * 4, k_y + 4), k_size * 6 + 1)
-    pygame.draw.circle(screen, (0, 0, 0), (k_x - k_left * 4, k_y + 4), k_size * 4, 2)
-    pygame.draw.circle(screen, (150, 150, 150), (k_x - k_left * 6, k_y + 6), k_size * 4 + 1)
-    pygame.draw.circle(screen, (0, 0, 0), (k_x, k_y), k_size * 10, 2)
-    pygame.draw.line(screen, (0, 0, 0), (k_x - k_left * k_size * 0.4, k_y + k_size * 3),
-                     (k_x - k_left * k_size * 2, k_y + k_size * 7), 2)
-    pygame.draw.line(screen, (0, 0, 0), (k_x - k_left * k_size * 3, k_y - k_size * 0.3),
-                     (k_x - k_left * k_size * 6, k_y + k_size * 1), 2)
-    pygame.draw.line(screen, (0, 0, 0), (k_x - k_left * k_size * 2, k_y + k_size * 2),
-                     (k_x - k_left * k_size * 5, k_y + k_size * 5), 2)
+                         (c_center[0] - c_direction * c_size * 0.25 * (i - 1),
+                          c_center[1] + c_size * 5 * (1 + np.sin(i / 20))),
+                         (c_center[0] - c_direction * c_size * 0.25 * i,
+                          c_center[1] + c_size * 5 * (1 + np.sin(i / 20))), 1)
+
+
+def clew_circles(c_size, c_center, c_direction):
+    """
+    рисует круги клубка
+    :param c_size: размер клубка
+    :param c_center: координаты клубка
+    :param c_direction: напрвление клубка
+    :return:
+    """
+    grey = (150, 150, 150)
+    black = (0, 0, 0)
+    pygame.draw.circle(screen, grey, (c_center[0], c_center[1]), c_size * 10)
+    pygame.draw.circle(screen, black, (c_center[0], c_center[1]), c_size * 8, 2)
+    pygame.draw.circle(screen, grey, (c_center[0] - c_direction * 3, c_center[1] + 3), c_size * 8 + c_direction * 1)
+    pygame.draw.circle(screen, black, (c_center[0] - c_direction * 2, c_center[1] + 2), c_size * 6, 2)
+    pygame.draw.circle(screen, grey, (c_center[0] - c_direction * 4, c_center[1] + 4), c_size * 6 + 1)
+    pygame.draw.circle(screen, black, (c_center[0] - c_direction * 4, c_center[1] + 4), c_size * 4, 2)
+    pygame.draw.circle(screen, grey, (c_center[0] - c_direction * 6, c_center[1] + 6), c_size * 4 + 1)
+    pygame.draw.circle(screen, black, (c_center[0], c_center[1]), c_size * 10, 2)
+
+
+def clew_lines(c_size, c_center, c_direction):
+    """
+    рисует прямые линии на клубке
+    :param c_size: размер клубка
+    :param c_center: координаты клубка
+    :param c_direction: напрвление клубка
+    :return:
+    """
+    black = (0, 0, 0)
+    pygame.draw.line(screen, black, (c_center[0] - c_direction * c_size * 0.4, c_center[1] + c_size * 3),
+                     (c_center[0] - c_direction * c_size * 2, c_center[1] + c_size * 7), 2)
+    pygame.draw.line(screen, black, (c_center[0] - c_direction * c_size * 3, c_center[1] - c_size * 0.3),
+                     (c_center[0] - c_direction * c_size * 6, c_center[1] + c_size * 1), 2)
+    pygame.draw.line(screen, black, (c_center[0] - c_direction * c_size * 2, c_center[1] + c_size * 2),
+                     (c_center[0] - c_direction * c_size * 5, c_center[1] + c_size * 5), 2)
+
+
+def clew(c_size, c_center, c_direction):
+    """
+    объединяет все функции рисования клубка
+    :param c_size: размер клубка
+    :param c_center: координаты клубка
+    :param c_direction: напрвление клубка
+    :return:
+    """
+    clew_tale(c_size, c_center, c_direction)
+    clew_circles(c_size, c_center, c_direction)
+    clew_lines(c_size, c_center, c_direction)
 
 
 FPS = 30
@@ -323,12 +370,12 @@ pygame.draw.rect(screen, (75, 50, 0), (0, 0, 600, 350))
 pygame.draw.rect(screen, (145, 130, 0), (0, 350, 600, 350))
 window(300, 50, 500, 300, 400, 150)
 cat(3, 1, (500, 450), (255, 130, 0), (0, 255, 0))
-klubok(3, 400, 600, 1)
+clew(3, (400, 600), 1)
 window(50, 50, 250, 300, 150, 150)
 cat(2, -1, (150, 600), (100, 100, 100), (0, 255, 255))
 cat(1, 1, (67, 400), (200, 200, 200), (100, 0, 200))
-klubok(2, 200, 437, -1)
-klubok(7, 50, 500, 1)
+clew(2, (200, 437), -1)
+clew(7, (50, 500), 1)
 cat(3, -1, (550, 600), (255, 255, 255), (100, 100, 100))
 cat(2, 1, (300, 470), (50, 50, 50), (200, 200, 200))
 window(550, 50, 750, 300, 650, 150)
