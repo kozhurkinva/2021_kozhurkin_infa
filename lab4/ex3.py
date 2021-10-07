@@ -30,13 +30,14 @@ def tale(size, direction, center, color):
     :param color: цвет кота
     :return:
     """
+    black = (0, 0, 0)
     tale_a = []
     tale_b = []
     tale_c = []
     tale_d = []
     x_start = center[0] + direction * size * 35
     y_start = center[1] + 15 * size
-    pygame.draw.circle(screen, (0, 0, 0), (x_start + direction * 35 * size, y_start + 17.5 * size), 2.5 * size)
+    pygame.draw.circle(screen, black, (x_start + direction * 35 * size, y_start + 17.5 * size), 2.5 * size)
 
     for h_x in range(20 * size):
         tale_a += [[x_start + direction * h_x,
@@ -49,7 +50,7 @@ def tale(size, direction, center, color):
                     y_start - (225 * size ** 2 - (15 * size - h_x * 3 / 4) ** 2) ** 0.5]]
     full_tale = tale_a + tale_b + tale_c + tale_d
     pygame.draw.polygon(screen, color, full_tale)
-    pygame.draw.polygon(screen, (0, 0, 0), full_tale, 2)
+    pygame.draw.polygon(screen, black, full_tale, 2)
     pygame.draw.circle(screen, color,
                        (x_start + direction * 35 * size, y_start + 17.5 * size), 2.5 * size - 2)
 
@@ -360,28 +361,37 @@ def clew(c_size, c_center, c_direction):
     clew_lines(c_size, c_center, c_direction)
 
 
+def background():
+    """
+    рисует задний фон
+    :return:
+    """
+    pygame.draw.rect(screen, (75, 50, 0), (0, 0, 600, 350))
+    pygame.draw.rect(screen, (145, 130, 0), (0, 350, 600, 350))
+
+
 FPS = 30
 finished = False
 pygame.init()
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((600, 700))
-# начало рисования
-pygame.draw.rect(screen, (75, 50, 0), (0, 0, 600, 350))
-pygame.draw.rect(screen, (145, 130, 0), (0, 350, 600, 350))
+
+background()
 window(300, 50, 500, 300, 400, 150)
+window(50, 50, 250, 300, 150, 150)
+window(550, 50, 750, 300, 650, 150)
+
 cat(3, 1, (500, 450), (255, 130, 0), (0, 255, 0))
 clew(3, (400, 600), 1)
-window(50, 50, 250, 300, 150, 150)
 cat(2, -1, (150, 600), (100, 100, 100), (0, 255, 255))
 cat(1, 1, (67, 400), (200, 200, 200), (100, 0, 200))
 clew(2, (200, 437), -1)
 clew(7, (50, 500), 1)
 cat(3, -1, (550, 600), (255, 255, 255), (100, 100, 100))
 cat(2, 1, (300, 470), (50, 50, 50), (200, 200, 200))
-window(550, 50, 750, 300, 650, 150)
+
 pygame.display.update()
 
-# ожидание закрытия окна
 while not finished:
     clock.tick(FPS)
     for event in pygame.event.get():
