@@ -40,7 +40,7 @@ class RectOfDeath(object):
         создание объекта Death_rect
         """
         self.time = randint(-300, -150)
-        size = [randint(20, 140), randint(20, 140)]
+        size = [randint(100, 150), randint(100, 150)]
         size[randint(0, 1)] *= 5
         self.rect = [randint(0, display[0] - size[0]), randint(0, display[1] - size[1]), size[0], size[1]]
 
@@ -59,16 +59,16 @@ class RectOfDeath(object):
     def death_check(self):
         """
         проверка на прикосновение
-        :return: оставшееся время игры
+        :return: True/False новый game_over
         """
         if self.time > 10:
             pos = pygame.mouse.get_pos()
             if rect_check(pos, self.rect):
-                return 0
+                return True
             else:
-                return game_time
+                return False
         else:
-            return game_time
+            return False
 
 
 class Ball(object):
@@ -240,15 +240,11 @@ def game_texts():
     рисует счёт и оставшееся время в текущей игре
     """
     score_text = fonts[0].render(str(score), False, WHITE)
-    game_time_text = fonts[0 + 2 * int(game_time <= 150)].render(str(game_time // 30), False, WHITE)
     screen.blit(score_text, score_pos)
-    screen.blit(game_time_text,
-                (game_time_pos[0] + 40 * int(game_time // 300 == 0) - 820 * int(game_time <= 150), game_time_pos[1]))
 
 
 clock = pygame.time.Clock()
 finished, game_over = False, True
-game_time = 0
 balls = []
 score = 0
 your_pos = -10
@@ -259,15 +255,17 @@ while not finished:
     clock.tick(FPS)
     if not game_over:
         for j in range(len(death_rectos)):
-            pygame.draw.rect(screen, death_rectos[j].color(), death_rectos[j].rect)
-            game_time = death_rectos[j].death_check()
-            if death_rectos[j].time >= 20:
-                death_rectos[j] = RectOfDeath()
-                death_rectos += [RectOfDeath()]
+            if death_rectos[j].time >=0:
+                pygame.draw.rect(screen, death_rectos[j].color(), death_rectos[j].rect)
+                game_over = death_rectos[j].death_check()
+                if death_rectos[j].time >= 20:
+                    death_rectos[j] = RectOfDeath()
+                    death_rectos += [RectOfDeath()]
             death_rectos[j].time += 1
-
-        game_time -= 1
         game_texts()
+        if game_over:
+            your_pos = check_tops()
+            death_rectos = [RectOfDeath()]
     for i in range(BALLS_NUMBER):
         for j in range(len(balls[i].color)):
             pygame.draw.circle(screen, COLORS[(balls[i].color[j])], (balls[i].x, balls[i].y),
@@ -280,11 +278,6 @@ while not finished:
         draw_new_game_button()
         draw_top_score()
         draw_you()
-    if game_time <= 0:
-        game_time = GAME_START_TIME
-        game_over = True
-        your_pos = check_tops()
-        death_rectos = [RectOfDeath()]
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
