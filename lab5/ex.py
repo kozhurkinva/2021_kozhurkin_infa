@@ -19,7 +19,7 @@ MAGENTA = (255, 0, 255)
 CYAN = (0, 255, 255)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN, BLACK]
+COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
 DEATH_TIME = 100
 BALLS_NUMBER = 5
@@ -28,6 +28,7 @@ GAME_TEXT = fonts[1].render("GAME", False, BLACK)
 NEW_TEXT = fonts[1].render("NEW", False, BLACK)
 TOP_SCORE_TEXT = fonts[0].render("TOP SCORE", False, WHITE)
 YOU_TEXT = fonts[0].render("YOU", False, WHITE)
+PAUSE_TEXT = fonts[0].render("PAUSE", False, WHITE)
 
 
 class RectOfDeath(object):
@@ -58,7 +59,7 @@ class RectOfDeath(object):
         """
         if (self.time <= self.start_time) and (self.time >= 0):
             return gray(100 * (self.start_time - abs(self.start_time - self.time)) // self.start_time)
-        elif self.time > 10:
+        elif self.time > self.start_time:
             return WHITE
         else:
             return BLACK
@@ -146,13 +147,13 @@ class Ball(object):
             return 0, self
 
 
-def gray(gray):
+def gray(brightness):
     """
     возвращает серый цвет заданной яркости (0 - чёрный, 255 - белый)
-    :param gray: яркость
+    :param brightness: яркость
     :return: серый цвет заданной яркости
     """
-    return gray, gray, gray
+    return brightness, brightness, brightness
 
 
 def rect_check(pos, rect):
@@ -163,8 +164,8 @@ def rect_check(pos, rect):
     :return: True/False попадание в прямоугольник
     """
     checking = True
-    for i in range(2):
-        checking = checking and (pos[i] >= rect[i]) and (pos[i] <= rect[i] + rect[i + 2])
+    for i1 in range(2):
+        checking = checking and (pos[i1] >= rect[i1]) and (pos[i1] <= rect[i1] + rect[i1 + 2])
     return checking
 
 
@@ -190,12 +191,12 @@ def draw_top_score():
     screen.blit(TOP_SCORE_TEXT, (375, 60))
     with open("top_score.txt") as tops:
         top_score = tops.read().split()
-        for i in range(10):
-            top_number_text = fonts[0].render(str(i + 1), False, WHITE)
-            top_score_text = fonts[0].render(str(top_score[i]), False, WHITE)
+        for i2 in range(10):
+            top_number_text = fonts[0].render(str(i2 + 1), False, WHITE)
+            top_score_text = fonts[0].render(str(top_score[i2]), False, WHITE)
             texts = [[top_score_text, x_score], [top_number_text, x_number]]
             for text in texts:
-                screen.blit(text[0], ((i % 2) * delta_top_x + text[1], y_start + i * delta_top_y))
+                screen.blit(text[0], ((i2 % 2) * delta_top_x + text[1], y_start + i2 * delta_top_y))
 
 
 def check_tops():
@@ -228,17 +229,25 @@ def draw_you():
     screen.blit(YOU_TEXT, (x_start, y_start + your_pos * delta_top_y))
 
 
-def button_click(event, button):
+def draw_pause():
+    """
+    рисует надпись "Pause"
+    """
+    x_start, y_start = 500, 400
+    screen.blit(PAUSE_TEXT, (x_start, y_start))
+
+
+def button_click(click_pos, button):
     """
     проверка на нажатие по кнопке
-    :param event: массив с координатами клика
+    :param click_pos: массив с координатами клика
     :param button: массив с координатами и размерами кнопки
     :return: True/False, нажатие кнопки
     """
     click = True
     for x_and_y in range(2):
-        click *= ((event[x_and_y] <= button[x_and_y] + button[x_and_y + 2])
-                  and (event[x_and_y] >= button[x_and_y]))
+        click *= ((click_pos[x_and_y] <= button[x_and_y] + button[x_and_y + 2])
+                  and (click_pos[x_and_y] >= button[x_and_y]))
     return click
 
 
@@ -251,7 +260,7 @@ def game_texts():
 
 
 clock = pygame.time.Clock()
-finished, game_over = False, True
+finished, game_over, paused = False, True, False
 balls = []
 score = 0
 your_pos = -10
@@ -260,44 +269,54 @@ for i in range(BALLS_NUMBER):
 death_rectos = [RectOfDeath(1)]
 while not finished:
     clock.tick(FPS)
-    if not game_over:
-        for j in range(len(death_rectos)):
-            if death_rectos[j].time >=0:
-                pygame.draw.rect(screen, death_rectos[j].color(), death_rectos[j].rect)
-                game_over = death_rectos[j].death_check()
-                if death_rectos[j].time >= death_rectos[j].start_time + 20:
-                    death_rectos += [RectOfDeath(death_rectos[j].number + 1)]
-                    death_rectos[j] = RectOfDeath(death_rectos[j].number + 1)
-            death_rectos[j].time += 1
-        game_texts()
+    if not paused:
+        paused = not pygame.mouse.get_focused()
+        if not game_over:
+            for j in range(len(death_rectos)):
+                if death_rectos[j].time >= 0:
+                    pygame.draw.rect(screen, death_rectos[j].color(), death_rectos[j].rect)
+                    game_over = death_rectos[j].death_check()
+                    if death_rectos[j].time >= death_rectos[j].start_time + 20:
+                        death_rectos += [RectOfDeath(death_rectos[j].number + 1)]
+                        death_rectos[j] = RectOfDeath(death_rectos[j].number + 1)
+                death_rectos[j].time += 1
+            game_texts()
+            if game_over:
+                your_pos = check_tops()
+                death_rectos = [RectOfDeath(1)]
+        for i in range(BALLS_NUMBER):
+            for j in range(len(balls[i].color)):
+                pygame.draw.circle(screen, COLORS[(balls[i].color[j])], (balls[i].x, balls[i].y),
+                                   balls[i].r * (len(balls[i].color) - j) // len(balls[i].color))
+            balls[i].move()
+            balls[i].d_move()
+            if randint(0, balls[i].time) >= DEATH_TIME:
+                balls[i] = Ball()
         if game_over:
-            your_pos = check_tops()
-            death_rectos = [RectOfDeath(1)]
-    for i in range(BALLS_NUMBER):
-        for j in range(len(balls[i].color)):
-            pygame.draw.circle(screen, COLORS[(balls[i].color[j])], (balls[i].x, balls[i].y),
-                               balls[i].r * (len(balls[i].color) - j) // len(balls[i].color))
-        balls[i].move()
-        balls[i].d_move()
-        if randint(0, balls[i].time) >= DEATH_TIME:
-            balls[i] = Ball()
-    if game_over:
-        draw_new_game_button()
-        draw_top_score()
-        draw_you()
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            finished = True
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if not game_over:
-                for i in range(BALLS_NUMBER):
-                    d_score, balls[i] = balls[i].click(event.pos)
-                    score += d_score
-            else:
-                if button_click([event.pos[0], event.pos[1]], new_game_button_rect):
-                    game_over = False
-                    score = 0
-    pygame.display.update()
-    screen.fill(BLACK)
+            draw_new_game_button()
+            draw_top_score()
+            draw_you()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                finished = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if not game_over:
+                    for i in range(BALLS_NUMBER):
+                        d_score, balls[i] = balls[i].click(event.pos)
+                        score += d_score
+                else:
+                    if button_click([event.pos[0], event.pos[1]], new_game_button_rect):
+                        game_over = False
+                        score = 0
+        pygame.display.update()
+        screen.fill(BLACK)
+    else:
+        draw_pause()
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                finished = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                paused = False
 
 pygame.quit()
