@@ -35,22 +35,29 @@ class RectOfDeath(object):
     класс объектов, заканчивающих игру при прикосновении
     """
 
-    def __init__(self):
+    def __init__(self, number):
         """
         создание объекта Death_rect
         """
+        self.start_time = 100 / number
+        self.number = number
         self.time = randint(-300, -150)
         size = [randint(100, 150), randint(100, 150)]
         size[randint(0, 1)] *= 5
-        self.rect = [randint(0, display[0] - size[0]), randint(0, display[1] - size[1]), size[0], size[1]]
+        self.rect = [randint(-size[0], display[0]), randint(-size[1], display[1]), size[0], size[1]]
+        for n in range(2):
+            if self.rect[n] < 0:
+                self.rect[n] = 0
+            elif self.rect[n] > display[n] - size[n]:
+                self.rect[n] = display[n] - size[n]
 
     def color(self):
         """
         цвет объекта в данный момент
         :return: цвет объекта
         """
-        if (self.time <= 10) and (self.time >= 0):
-            return gray(20 * (5 - abs(5 - self.time)))
+        if (self.time <= self.start_time) and (self.time >= 0):
+            return gray(100 * (self.start_time - abs(self.start_time - self.time)) // self.start_time)
         elif self.time > 10:
             return WHITE
         else:
@@ -61,7 +68,7 @@ class RectOfDeath(object):
         проверка на прикосновение
         :return: True/False новый game_over
         """
-        if self.time > 10:
+        if self.time > self.start_time:
             pos = pygame.mouse.get_pos()
             if rect_check(pos, self.rect):
                 return True
@@ -250,7 +257,7 @@ score = 0
 your_pos = -10
 for i in range(BALLS_NUMBER):
     balls += [Ball()]
-death_rectos = [RectOfDeath()]
+death_rectos = [RectOfDeath(1)]
 while not finished:
     clock.tick(FPS)
     if not game_over:
@@ -258,14 +265,14 @@ while not finished:
             if death_rectos[j].time >=0:
                 pygame.draw.rect(screen, death_rectos[j].color(), death_rectos[j].rect)
                 game_over = death_rectos[j].death_check()
-                if death_rectos[j].time >= 20:
-                    death_rectos[j] = RectOfDeath()
-                    death_rectos += [RectOfDeath()]
+                if death_rectos[j].time >= death_rectos[j].start_time + 20:
+                    death_rectos += [RectOfDeath(death_rectos[j].number + 1)]
+                    death_rectos[j] = RectOfDeath(death_rectos[j].number + 1)
             death_rectos[j].time += 1
         game_texts()
         if game_over:
             your_pos = check_tops()
-            death_rectos = [RectOfDeath()]
+            death_rectos = [RectOfDeath(1)]
     for i in range(BALLS_NUMBER):
         for j in range(len(balls[i].color)):
             pygame.draw.circle(screen, COLORS[(balls[i].color[j])], (balls[i].x, balls[i].y),
