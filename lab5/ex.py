@@ -90,7 +90,7 @@ class Ball(object):
     """
     DEATH_TIME = 100
     MAX_SPEED = 10
-    COLOR_NUMBER = 5
+    COLOR_NUMBER = 6
 
     def __init__(self):
         """
@@ -102,7 +102,7 @@ class Ball(object):
         self.r = randint(min_r, max_r)
         self.x = randint(self.r, display[0] - self.r)
         self.y = randint(self.r, display[1] - self.r)
-        self.color = [randint(0, Ball.COLOR_NUMBER)]
+        self.color = [randint(0, Ball.COLOR_NUMBER - 1)]
         for k in range(self.clicker):
             self.new_color()
         self.speed_x = randint(-Ball.MAX_SPEED, Ball.MAX_SPEED)
@@ -110,9 +110,9 @@ class Ball(object):
         self.time = 0
 
     def new_color(self):
-        self.color += [randint(0, Ball.COLOR_NUMBER - 1)]
+        self.color += [randint(0, Ball.COLOR_NUMBER - 2)]
         if self.color[-2] == self.color[-1]:
-            self.color[-1] = Ball.COLOR_NUMBER
+            self.color[-1] = Ball.COLOR_NUMBER - 1
 
     def move(self):
         """
