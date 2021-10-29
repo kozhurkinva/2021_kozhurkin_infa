@@ -306,12 +306,12 @@ def game_texts():
 
 clock = pygame.time.Clock()
 finished, game_over, paused = False, True, False
-balls = []
+bullets = []
 score = 0
 your_pos = -10
 after_pause_timer = 0
 for i in range(BALLS_NUMBER):
-    balls += [Ball()]
+    bullets += [Ball()]
 death_rectos = [RectOfDeath(1)]
 while not finished:
     clock.tick(FPS)
@@ -341,13 +341,13 @@ while not finished:
 
         # обработка Ball
         for i in range(BALLS_NUMBER):
-            for j in range(len(balls[i].color)):
-                pygame.draw.circle(screen, COLORS[(balls[i].color[j])], (balls[i].x, balls[i].y),
-                                   balls[i].r * (len(balls[i].color) - j) // len(balls[i].color))
-            balls[i].move()
-            balls[i].d_move()
-            if balls[i].ball_death():
-                balls[i] = Ball()
+            for j in range(len(bullets[i].color)):
+                pygame.draw.circle(screen, COLORS[(bullets[i].color[j])], (bullets[i].x, bullets[i].y),
+                                   bullets[i].r * (len(bullets[i].color) - j) // len(bullets[i].color))
+            bullets[i].move()
+            bullets[i].d_move()
+            if bullets[i].ball_death():
+                bullets[i] = Ball()
 
         # прорисовка меню
         if game_over:
@@ -364,7 +364,7 @@ while not finished:
                 # нажатие мыши в игровой сессии
                 if not game_over:
                     for i in range(BALLS_NUMBER):
-                        d_score, balls[i] = balls[i].click(event.pos)
+                        d_score, bullets[i] = bullets[i].click(event.pos)
                         score += d_score
 
                 # нажатие мыши в меню
