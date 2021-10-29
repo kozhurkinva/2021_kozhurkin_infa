@@ -87,6 +87,7 @@ class Ball:
             self.r = 0
 
     def draw(self):
+        """чертит объект"""
         pygame.draw.circle(
             self.screen,
             self.color,
@@ -147,6 +148,7 @@ class Gun:
             self.color = GREY
 
     def draw(self):
+        """чертит объект"""
         length = Gun.length_start + self.f2_power * Gun.d_length
         gun_texture = pygame.surface.Surface((round(length) * 2, round(Gun.width)))
         gun_texture.fill(WHITE)
@@ -187,6 +189,7 @@ class Target:
             self.r = 0
 
     def move(self):
+        """перемещение целей"""
         self.x += self.vx
         self.y += self.vy
         if self.x >= WIDTH - self.r:
@@ -199,19 +202,23 @@ class Target:
             self.vy = abs(self.vy)
 
     def draw(self):
+        """чертит объект"""
         pygame.draw.circle(screen, self.color, (self.x, self.y), self.r)
 
 
 def text_render(text):
+    """рендерит текст"""
     return FONT.render(text, False, BLACK)
 
 
 def draw_score():
+    """ресует счёт"""
     score_text = text_render(str(Target.points))
     screen.blit(score_text, (10, 10))
 
 
 def draw_number_bullet():
+    """рисует текст в конце каждого сеанса"""
     score_text = text_render(str(bullet) + " выстрелов вам понадобилось")
     screen.blit(score_text, (50, 270))
 
@@ -229,6 +236,8 @@ stop_time = 0
 live_sum = True
 
 while not finished:
+
+    # прорисовка основных объектов
     screen.fill(WHITE)
     gun.draw()
     for t in targets:
@@ -237,6 +246,8 @@ while not finished:
         b.draw()
 
     clock.tick(FPS)
+
+    # обработка событий
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
@@ -248,6 +259,7 @@ while not finished:
         elif event.type == pygame.MOUSEMOTION:
             gun.target_getting(event)
 
+    # обработка взаимодействия мячей и мишеней
     for b in Ball.bullets:
         b.move()
         if stop_time <= 0:
@@ -261,6 +273,8 @@ while not finished:
                             target = Target()
     for t in targets:
         t.move()
+
+    # когда кончились мишени, нужно обработать конец игрового сеанса
     if not live_sum:
         stop_time = 90
         live_sum = True
@@ -277,6 +291,5 @@ while not finished:
     gun.power_up()
     draw_score()
     pygame.display.update()
-
 
 pygame.quit()
