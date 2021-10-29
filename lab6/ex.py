@@ -25,12 +25,12 @@ TARGET_NUMBER = 3
 FONT = pygame.font.Font(None, 30)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-g = 1
+G = 1
 
 
 class Ball:
-    floor = HEIGHT
-    walls = (0, WIDTH)
+    FLOOR = HEIGHT
+    WALLS = (0, WIDTH)
 
     def __init__(self, ball_screen=screen, x=40, y=450):
         """ конструктор класса ball
@@ -56,14 +56,15 @@ class Ball:
         """
         self.x += self.vx
         self.y -= self.vy
-        if self.x <= Ball.walls[0] + self.r:
+        if self.x <= self.WALLS[0] + self.r:
             self.vx = abs(self.vx)
-        if self.x >= Ball.walls[1] - self.r:
+            self.x = self.WALLS[0] + self.r
+        if self.x >= self.WALLS[1] - self.r:
             self.vx = -abs(self.vx)
-        if self.y >= Ball.floor - self.r:
-            self.vy = abs(self.vx)
-        if self.death_check():
-            self.r = 0
+            self.x = self.WALLS[1] - self.r
+        if self.y >= self.FLOOR - self.r:
+            self.vy = abs(self.vy)
+            self.y = self.FLOOR - self.r
 
     def draw(self):
         """чертит объект"""
@@ -76,6 +77,7 @@ class Ball:
 
     def death_check(self):
         if self.live <= 0:
+            self.r = 0
             return True
         else:
             return False
@@ -144,6 +146,7 @@ class Bullet(Ball):
     :param bullet_gun: выбор объекта gun
     """
     bullets = []
+    JUMP = 0.6
 
     def __init__(self, bullet_gun, surface=screen):
         super().__init__(surface)
@@ -151,7 +154,7 @@ class Bullet(Ball):
         bullet_gun.an = math.atan2((event.pos[1] - self.y), (event.pos[0] - self.x))
         self.vx = bullet_gun.f2_power * math.cos(bullet_gun.an)
         self.vy = - bullet_gun.f2_power * math.sin(bullet_gun.an)
-        self.live = 100
+        self.live = 200
         Bullet.bullets.append(self)
         bullet_gun.f2_on = 0
         bullet_gun.f2_power = 10
@@ -170,15 +173,18 @@ class Bullet(Ball):
             return True
 
     def move(self):
-        if self.y >= Ball.floor - self.r:
-            self.vy *= 0.5
-            self.vx *= 0.5
-            if abs(self.vy < 2):
-                self.vy = 0
-                self.y = self.floor - self.r
+        if self.y >= self.FLOOR - self.r:
+            if self.vy >= 0:
+                self.vy *= self.JUMP
+                self.vx *= self.JUMP
+                if abs(self.vy < 2):
+                    self.vy = 0
+                    self.y = self.FLOOR - self.r
+        else:
+            self.vy -= G
         super().move()
-        self.vy -= g
         self.live -= 1
+        self.death_check()
 
 
 class Target(Ball):
@@ -198,12 +204,14 @@ class Target(Ball):
         """попадание шарика в цель."""
         Target.points += points
         self.live -= 1
+        self.death_check()
 
     def move(self):
         """перемещение целей"""
         super().move()
         if self.y <= self.r:
             self.vy = -abs(self.vy)
+            self.y = self.r
 
 
 def text_render(text):
