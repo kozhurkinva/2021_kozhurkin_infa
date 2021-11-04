@@ -21,7 +21,7 @@ GAME_COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
 WIDTH = 800
 HEIGHT = 600
-TARGET_NUMBER = 3
+target_number = 3
 FONT = pygame.font.Font(None, 30)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -170,10 +170,16 @@ class Bullet(Ball):
         returns:
             возвращает true в случае столкновения мяча и цели. в противном случае возвращает false.
         """
-        if ((self.x - obj.x) ** 2 + (self.y - obj.y) ** 2 > (self.r + obj.r) ** 2) or self.death_check():
-            return False
-        else:
-            return True
+        test = False
+        number = 0
+        if self.r != 0:
+            while number * self.r <= (self.vx ** 2 + self.vy ** 2) ** 0.5:
+                k = self.r / (self.vx ** 2 + self.vy ** 2) ** 0.5
+                dx, dy = self.x - k * self.vx - obj.x, self.y + k * self.vy - obj.y
+                if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) or self.death_check():
+                    test = True
+                number += 0.5
+        return test
 
     def move(self):
         if self.y >= self.FLOOR - self.r:
@@ -188,6 +194,10 @@ class Bullet(Ball):
         super().move()
         self.live -= 1
         self.death_check()
+
+    def draw(self):
+        pygame.draw.circle(self.screen, BLACK, (self.x - self.vx * 0.25, self.y + self.vy * 0.25), self.r)
+        super().draw()
 
 
 class Target(Ball):
@@ -239,7 +249,7 @@ bullet = 0
 clock = pygame.time.Clock()
 gun = Gun(screen)
 targets = []
-for i in range(TARGET_NUMBER):
+for i in range(target_number):
     targets += [Target()]
 finished = False
 stop_time = 0
@@ -286,13 +296,14 @@ while not finished:
     if not live_sum:
         stop_time = 90
         live_sum = True
+        target_number += 1
 
     if stop_time > 0:
         draw_number_bullet()
         stop_time -= 1
         if stop_time <= 0:
             targets = []
-            for i in range(TARGET_NUMBER):
+            for i in range(target_number):
                 targets += [Target()]
             bullet = 0
 
