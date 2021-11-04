@@ -8,15 +8,15 @@ pygame.init()
 
 fps = 30
 
-RED = 0xFF0000
-BLUE = 0x0000FF
-YELLOW = 0xFFC91F
-GREEN = 0x00FF00
-MAGENTA = 0xFF03B8
-CYAN = 0x00FFCC
-BLACK = 0x000000
-WHITE = 0xFFFFFF
-GREY = 0x7D7D7D
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+YELLOW = (255, 201, 31)
+GREEN = (0, 255, 0)
+MAGENTA = (255, 3, 184)
+CYAN = (0, 255, 204)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GREY = (125, 125, 125)
 GAME_COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
 WIDTH = 800
@@ -68,12 +68,8 @@ class Ball:
 
     def draw(self):
         """чертит объект"""
-        pygame.draw.circle(
-            self.screen,
-            self.color,
-            (self.x, self.y),
-            self.r
-        )
+        pygame.draw.circle(self.screen, self.color, (self.x, self.y), self.r)
+        pygame.draw.circle(self.screen, BLACK, (self.x, self.y), self.r, 1)
 
     def death_check(self):
         if self.live <= 0:
@@ -127,9 +123,11 @@ class Gun:
 
     def draw(self):
         """чертит объект"""
+        pygame.draw.circle(screen, YELLOW, (self.x, self.y - 80), 50)
+        pygame.draw.circle(screen, BLACK, (self.x, self.y - 80), 50, 1)
+        shar_texture(self.x, self.y - 80, 50, RED)
         length = gun.length_start + self.f2_power * gun.d_length
-        gun_texture = pygame.surface.Surface((round(length) * 2, round(gun.width)))
-        gun_texture.fill(WHITE)
+        gun_texture = pygame.Surface((round(length) * 2, round(gun.width)), pygame.SRCALPHA)
         pygame.draw.rect(gun_texture, self.color, (length, 0, length, gun.width))
         rotated_gun = pygame.transform.rotate(gun_texture, -self.an * 180 / math.pi)
         self.screen.blit(rotated_gun, rotated_gun.get_rect(center=(self.x, self.y)))
@@ -242,24 +240,22 @@ class Shar(Target):
     def draw(self):
         super().draw()
         if self.r != 0:
-            x = self.x
-            y = self.y
-            r = self.r
-            r_dug = round(r * 4 / (5 ** 0.5))
-            gran = round(r * 0.8)
-            draw_circle_in_rect((x + r, y), r_dug, (0, 0, 0),
-                                (x - r, y - gran, r * 2, gran * 2), 1)
-            draw_circle_in_rect((x - r, y), r_dug, (0, 0, 0),
-                                (x - r, y - gran, r * 2, gran * 2), 1)
-            draw_circle_in_rect((x, y + r), r_dug, (0, 0, 0),
-                                (x - gran, y - r, gran * 2, r * 2), 1)
-            pygame.draw.line(screen, BLACK, (x - r, y), (x + r, y))
-            pygame.draw.line(screen, BLACK, (x, y - r), (x, y + round(r * 1.6)))
-            pygame.draw.line(screen, BLACK, (x - round(r * 0.6), y + round(r * 0.8)),
-                             (x - round(r * 0.2), y + round(r * 1.6)))
-            pygame.draw.line(screen, BLACK, (x + round(r * 0.6), y + round(r * 0.8)),
-                             (x + round(r * 0.2), y + round(r * 1.6)))
-            pygame.draw.rect(screen, GREY, (x - round(r * 0.2), y + round(r * 1.6), round(r * 0.4), round(r * 0.3)))
+            shar_texture(self.x, self.y, self.r)
+
+
+class Airship(Target):
+
+    def __init__(self, surface=screen):
+        super().__init__(surface)
+        self.r = rnd(20, 40)
+        self.x = WIDTH + self.r
+        self.vy = 0
+        self.vx = - rnd(2, 5)
+
+    def draw(self):
+        super().draw()
+        if self.r != 0:
+            airship_texture(self.x, self.y, self.r, self.vx)
 
 
 def text_render(text):
@@ -294,6 +290,48 @@ def draw_circle_in_rect(circle_center, r, circle_color,  shape_rect, circle_widt
     pygame.draw.circle(shape, circle_color, (circle_center[0] - shape_rect[0], circle_center[1] - shape_rect[1]),
                        r, circle_width)
     screen.blit(shape, shape_rect[0:2])
+
+
+def shar_texture(x, y, r, color_basket=GREY):
+    """рисует поверх круга воздушный шар"""
+    r_dug = round(r * 4 / (5 ** 0.5))
+    gran = round(r * 0.8)
+
+    draw_circle_in_rect((x + r, y), r_dug, BLACK, (x - r, y - gran, r * 2, gran * 2), 1)
+    draw_circle_in_rect((x - r, y), r_dug, BLACK, (x - r, y - gran, r * 2, gran * 2), 1)
+    draw_circle_in_rect((x, y + r), r_dug, BLACK, (x - gran, y - r, gran * 2, r * 2), 1)
+
+    pygame.draw.line(screen, BLACK, (x - r, y), (x + r, y))
+    pygame.draw.line(screen, BLACK, (x, y - r), (x, y + round(r * 1.6)))
+
+    pygame.draw.line(screen, BLACK, (x - round(r * 0.6), y + round(r * 0.8)),
+                     (x - round(r * 0.2), y + round(r * 1.6)))
+    pygame.draw.line(screen, BLACK, (x + round(r * 0.6), y + round(r * 0.8)),
+                     (x + round(r * 0.2), y + round(r * 1.6)))
+
+    pygame.draw.rect(screen, color_basket, (x - round(r * 0.2), y + round(r * 1.6), round(r * 0.4), round(r * 0.3)))
+
+
+def airship_texture(x, y, r, speed, color=RED, color_basket=GREY):
+    """рисует поверх круга дирижабль"""
+    r_dug = r * 5
+    prop_x = x - 3 * r + 6 * r * int(speed < 0)
+    draw_circle_in_rect((x, y - round(r * 3.5)), r_dug, color_basket, (x - r * 2, y, r * 4, r * 2))
+    draw_circle_in_rect((x, y - round(r * 3.5)), r_dug, BLACK, (x - r * 2, y, r * 4, r * 2), 1)
+
+    draw_circle_in_rect((x, y + r * 4), r_dug, color, (x - r * 3, y - r, r * 6, r))
+    draw_circle_in_rect((x, y - r * 4), r_dug, color, (x - r * 3, y, r * 6, r))
+
+    draw_circle_in_rect((x, y + r * 4), r_dug, BLACK, (x - r * 3, y - r, r * 6, r), 1)
+    draw_circle_in_rect((x, y - r * 4), r_dug, BLACK, (x - r * 3, y, r * 6, r), 1)
+
+    pygame.draw.circle(screen, BLACK, (x, y), r, 1)
+    pygame.draw.line(screen, BLACK, (x, y - r), (x, y + r))
+
+    draw_circle_in_rect((x, y + r * 4), r_dug, BLACK, (x + r * 2 - r * 5 * int(speed > 0), y - r, r, r))
+    draw_circle_in_rect((x, y - r * 4), r_dug, BLACK, (x + r * 2 - r * 5 * int(speed > 0), y, r, r))
+
+    pygame.draw.line(screen, BLACK, (prop_x, y - round(r * 0.5)), (prop_x, y + round(r * 0.5)))
 
 
 bullet = 0
@@ -348,6 +386,7 @@ while not finished:
         stop_time = 90
         live_sum = True
         target_number += 1
+        Bullet.bullets = []
 
     if stop_time > 0:
         draw_number_bullet()
@@ -355,7 +394,10 @@ while not finished:
         if stop_time <= 0:
             targets = []
             for i in range(target_number):
-                targets += [Target()]
+                if rnd(0, 1):
+                    targets += [Shar()]
+                else:
+                    targets += [Airship()]
             bullet = 0
 
     gun.power_up()
