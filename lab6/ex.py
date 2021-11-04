@@ -88,7 +88,7 @@ class Gun:
     length_start = 10
     d_length = 1
 
-    def __init__(self, gun_screen):
+    def __init__(self, gun_screen, x=40, y=450):
         """
         :param gun_screen: плоскость, на которой будет выведен объект
         """
@@ -97,6 +97,8 @@ class Gun:
         self.f2_on = 0
         self.an = 1
         self.color = GREY
+        self.x = x
+        self.y = y
 
     def fire2_start(self):
         """начало заряда"""
@@ -113,10 +115,11 @@ class Gun:
     def target_getting(self, event_end):
         """прицеливание. зависит от положения мыши."""
         if event_end:
-            if event_end.pos[0] != 20:
-                self.an = math.atan((event_end.pos[1] - 450) / (event_end.pos[0] - 20))
+            if event_end.pos[0] != self.x:
+                self.an = math.atan((event_end.pos[1] - self.y) / (event_end.pos[0] - self.x))
+                self.an += int(event_end.pos[0] < self.x) * math.pi
             else:
-                self.an = - math.pi / 2
+                self.an = math.pi / 2 * - (int(event_end.pos[1] < self.y) * 2 - 1)
         if self.f2_on:
             self.color = RED
         else:
@@ -129,7 +132,7 @@ class Gun:
         gun_texture.fill(WHITE)
         pygame.draw.rect(gun_texture, self.color, (length, 0, length, gun.width))
         rotated_gun = pygame.transform.rotate(gun_texture, -self.an * 180 / math.pi)
-        self.screen.blit(rotated_gun, rotated_gun.get_rect(center=(20, 450)))
+        self.screen.blit(rotated_gun, rotated_gun.get_rect(center=(self.x, self.y)))
 
     def power_up(self):
         """
@@ -152,7 +155,7 @@ class Bullet(Ball):
     JUMP = 0.6
 
     def __init__(self, bullet_gun, surface=screen):
-        super().__init__(surface)
+        super().__init__(surface, bullet_gun.x, bullet_gun.y)
         self.r += 5
         bullet_gun.an = math.atan2((event.pos[1] - self.y), (event.pos[0] - self.x))
         self.vx = bullet_gun.f2_power * math.cos(bullet_gun.an)
