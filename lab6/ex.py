@@ -247,6 +247,13 @@ def draw_number_bullet():
     screen.blit(score_text, (50, 270))
 
 
+def draw_ellipse_in_rect(ellipse_rect, ellipse_color, shape_rect, ellipse_width=0):
+    """нужна для прорисовки секторов эллипса"""
+    shape = pygame.surface.Surface(shape_rect[2:4], pygame.SRCALPHA)
+    pygame.draw.ellipse(shape, ellipse_color, ellipse_rect, ellipse_width)
+    screen.blit(shape, shape_rect[0:2])
+
+
 bullet = 0
 
 clock = pygame.time.Clock()
@@ -259,7 +266,6 @@ stop_time = 0
 live_sum = True
 
 while not finished:
-
     # прорисовка основных объектов
     screen.fill(WHITE)
     gun.draw()
