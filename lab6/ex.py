@@ -230,6 +230,38 @@ class Target(Ball):
             self.y = self.r
 
 
+class Shar(Target):
+
+    def __init__(self, surface=screen):
+        super().__init__(surface)
+        self.r = rnd(20, 40)
+        self.y = HEIGHT + self.r
+        self.vx = 0
+        self.vy = rnd(2, 5)
+
+    def draw(self):
+        super().draw()
+        if self.r != 0:
+            x = self.x
+            y = self.y
+            r = self.r
+            r_dug = round(r * 4 / (5 ** 0.5))
+            gran = round(r * 0.8)
+            draw_circle_in_rect((x + r, y), r_dug, (0, 0, 0),
+                                (x - r, y - gran, r * 2, gran * 2), 1)
+            draw_circle_in_rect((x - r, y), r_dug, (0, 0, 0),
+                                (x - r, y - gran, r * 2, gran * 2), 1)
+            draw_circle_in_rect((x, y + r), r_dug, (0, 0, 0),
+                                (x - gran, y - r, gran * 2, r * 2), 1)
+            pygame.draw.line(screen, BLACK, (x - r, y), (x + r, y))
+            pygame.draw.line(screen, BLACK, (x, y - r), (x, y + round(r * 1.6)))
+            pygame.draw.line(screen, BLACK, (x - round(r * 0.6), y + round(r * 0.8)),
+                             (x - round(r * 0.2), y + round(r * 1.6)))
+            pygame.draw.line(screen, BLACK, (x + round(r * 0.6), y + round(r * 0.8)),
+                             (x + round(r * 0.2), y + round(r * 1.6)))
+            pygame.draw.rect(screen, GREY, (x - round(r * 0.2), y + round(r * 1.6), round(r * 0.4), round(r * 0.3)))
+
+
 def text_render(text):
     """рендерит текст"""
     return FONT.render(text, False, BLACK)
@@ -250,7 +282,17 @@ def draw_number_bullet():
 def draw_ellipse_in_rect(ellipse_rect, ellipse_color, shape_rect, ellipse_width=0):
     """нужна для прорисовки секторов эллипса"""
     shape = pygame.surface.Surface(shape_rect[2:4], pygame.SRCALPHA)
-    pygame.draw.ellipse(shape, ellipse_color, ellipse_rect, ellipse_width)
+    pygame.draw.ellipse(shape, ellipse_color,
+                        [ellipse_rect[0] - shape_rect[0], ellipse_rect[1] - shape_rect[1]] + ellipse_rect[2, 4],
+                        ellipse_width)
+    screen.blit(shape, shape_rect[0:2])
+
+
+def draw_circle_in_rect(circle_center, r, circle_color,  shape_rect, circle_width=0):
+    """нужна для прорисовки сектора круга"""
+    shape = pygame.Surface(shape_rect[2:4], pygame.SRCALPHA)
+    pygame.draw.circle(shape, circle_color, (circle_center[0] - shape_rect[0], circle_center[1] - shape_rect[1]),
+                       r, circle_width)
     screen.blit(shape, shape_rect[0:2])
 
 
@@ -260,7 +302,7 @@ clock = pygame.time.Clock()
 gun = Gun(screen)
 targets = []
 for i in range(target_number):
-    targets += [Target()]
+    targets += [Shar()]
 finished = False
 stop_time = 0
 live_sum = True
