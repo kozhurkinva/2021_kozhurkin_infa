@@ -91,6 +91,7 @@ class Gun:
         self.screen = gun_screen
         self.f2_power = 10
         self.f2_on = 0
+        self.move_on = 0
         self.an = 1
         self.color = GREY
         self.x = x
@@ -120,6 +121,20 @@ class Gun:
             self.color = RED
         else:
             self.color = GREY
+
+    def move_start(self):
+        """начало движения"""
+        self.move_on = 1
+
+    def move_end(self):
+        """остановка"""
+        self.move_on = 0
+
+    def move(self):
+        """перемещение. зависит от положения мыши."""
+        if self.move_on:
+            self.x += math.cos(self.an) * 3
+            self.y += math.sin(self.an) * 3
 
     def draw(self):
         """чертит объект"""
@@ -348,6 +363,7 @@ live_sum = True
 while not finished:
     # прорисовка основных объектов
     screen.fill(WHITE)
+    gun.move()
     gun.draw()
     for t in targets:
         t.draw()
@@ -361,10 +377,16 @@ while not finished:
         if event.type == pygame.QUIT:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            gun.fire2_start()
+            if event.button == 1:
+                gun.fire2_start()
+            else:
+                gun.move_start()
         elif event.type == pygame.MOUSEBUTTONUP:
-            gun.fire2_end()
-            bullet += 1
+            if event.button == 1:
+                gun.fire2_end()
+                bullet += 1
+            else:
+                gun.move_end()
         elif event.type == pygame.MOUSEMOTION:
             gun.target_getting(event)
 
