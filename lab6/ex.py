@@ -196,6 +196,24 @@ class Bullet(Ball):
         returns:
             возвращает true в случае столкновения мяча и цели. в противном случае возвращает false.
         """
+        test = False
+        number = 0
+        dx, dy = self.x - obj.x, self.y - obj.y
+        if self.r != 0:
+            while (number * self.r <= (self.vx ** 2 + self.vy ** 2) ** 0.5) and (self.vx ** 2 + self.vy ** 2 != 0):
+                k = self.r / (self.vx ** 2 + self.vy ** 2) ** 0.5
+                dx, dy = self.x - k * self.vx - obj.x, self.y + k * self.vy - obj.y
+                if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) or self.death_check():
+                    test = True
+                number += 0.5
+            if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) or self.death_check():
+                test = True
+        if test:
+            self.hit_reaction()
+        return test
+
+    def hit_reaction(self):
+        """реакция пули на попадание в цель"""
         pass
 
     def move(self):
@@ -219,19 +237,8 @@ class Bullet(Ball):
 
 class Cannonball(Bullet):
 
-    def hit_test(self, obj):
-        test = False
-        number = 0
-        if (self.r > 0) and (self.vx != 0) and (self.vy != 0):
-            while (number * self.r <= (self.vx ** 2 + self.vy ** 2) ** 0.5) and (self.r > 0):
-                k = self.r / (self.vx ** 2 + self.vy ** 2) ** 0.5
-                dx, dy = self.x - k * self.vx - obj.x, self.y + k * self.vy - obj.y
-                if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) and not self.death_check():
-                    test = True
-                number += 0.5
-        if test:
-            self.live = 0
-        return test
+    def hit_reaction(self):
+        self.live = 0
 
 
 class Bomb(Bullet):
@@ -244,36 +251,19 @@ class Bomb(Bullet):
     def move(self):
         if not self.boom:
             super().move()
-            if self.r == 30:
-                self.boom = True
             if self.y >= HEIGHT - self.r:
                 if self.live > 10:
-                    self.live = 10
-                    self.vx = self.vy = 0
-                    self.r = 30
+                    self.hit_reaction()
         else:
             self.live -= 1
             self.death_check()
 
-    def hit_test(self, obj):
-        test = False
-        number = 0
-        dx, dy = self.x - obj.x, self.y - obj.y
-        if self.r != 0:
-            while (number * self.r <= (self.vx ** 2 + self.vy ** 2) ** 0.5) and (self.vx ** 2 + self.vy ** 2 != 0):
-                k = self.r / (self.vx ** 2 + self.vy ** 2) ** 0.5
-                dx, dy = self.x - k * self.vx - obj.x, self.y + k * self.vy - obj.y
-                if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) or self.death_check():
-                    test = True
-                number += 0.5
-            if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) or self.death_check():
-                test = True
-        if test:
-            if self.live > 10:
-                self.live = 10
-                self.vx = self.vy = 0
-                self.r = 30
-        return test
+    def hit_reaction(self):
+        if self.live > 10:
+            self.live = 10
+            self.vx = self.vy = 0
+            self.r = 50
+            self.boom = True
 
 
 class Target(Ball):
@@ -323,7 +313,7 @@ class Airship(Target):
 
     def __init__(self, surface=screen):
         super().__init__(surface)
-        self.r = rnd(20, 40)
+        self.r = rnd(10, 20)
         self.x = WIDTH + self.r
         self.vy = 0
         self.vx = - rnd(2, 5)
@@ -333,6 +323,7 @@ class Airship(Target):
         super().draw()
         if self.r != 0:
             airship_texture(self.x, self.y, self.r, self.vx)
+
 
 
 def text_render(text):
