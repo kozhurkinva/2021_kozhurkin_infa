@@ -141,6 +141,7 @@ class Gun:
         pygame.draw.circle(screen, YELLOW, (self.x, self.y - 80), 50)
         pygame.draw.circle(screen, BLACK, (self.x, self.y - 80), 50, 1)
         shar_texture(self.x, self.y - 80, 50, RED)
+        pygame.draw.circle(screen, self.color, (self.x, self.y), 10)
         length = gun.length_start + self.f2_power * gun.d_length
         gun_texture = pygame.Surface((round(length) * 2, round(gun.width)), pygame.SRCALPHA)
         pygame.draw.rect(gun_texture, self.color, (length, 0, length, gun.width))
@@ -165,7 +166,7 @@ class Bomber(Gun):
         Bomb(self)
 
     def draw(self):
-        airship_texture(self.x, self.y, 30, 1, YELLOW, RED)
+        airship_texture(self.x, self.y, 30, math.cos(self.an), YELLOW, RED)
 
 
 class Bullet(Ball):
@@ -310,6 +311,7 @@ class Shar(Target):
         self.y = HEIGHT + self.r
         self.vx = 0
         self.vy = rnd(2, 5)
+        self.x = rnd(self.r, WIDTH - self.r)
 
     def draw(self):
         super().draw()
@@ -325,6 +327,7 @@ class Airship(Target):
         self.x = WIDTH + self.r
         self.vy = 0
         self.vx = - rnd(2, 5)
+        self.y = rnd(self.r, HEIGHT - self.r)
 
     def draw(self):
         super().draw()
