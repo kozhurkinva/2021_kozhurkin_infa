@@ -28,11 +28,19 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 G = 1
 
 
-class Ball:
+class Circle:
+
+    def __init__(self, x, y, r):
+        self.x = x
+        self.y = y
+        self.r = r
+
+
+class Ball(Circle):
     FLOOR = HEIGHT
     WALLS = (0, WIDTH)
 
-    def __init__(self, ball_screen=screen, x=40, y=450):
+    def __init__(self, ball_screen=screen, x=40, y=450, r=10):
         """ конструктор класса ball
 
         args:
@@ -42,11 +50,12 @@ class Ball:
         self.screen = ball_screen
         self.x = x
         self.y = y
-        self.r = 10
+        self.r = r
         self.vx = 0
         self.vy = 0
         self.color = choice(GAME_COLORS)
         self.live = 30
+        self.circles = [Circle(x, y, r)]
 
     def move(self):
         """переместить мяч по прошествии единицы времени.
@@ -65,6 +74,7 @@ class Ball:
         if self.y >= self.FLOOR - self.r:
             self.vy = abs(self.vy)
             self.y = self.FLOOR - self.r
+        self.circles = [Circle(self.x, self.y, self.r)]
 
     def draw(self):
         """чертит объект"""
@@ -188,7 +198,7 @@ class Bullet(Ball):
         bullet_gun.f2_on = 0
         bullet_gun.f2_power = 10
 
-    def hit_test(self, obj):
+    def hit_test(self, circle):
         """функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте obj.
 
         args:
@@ -198,20 +208,18 @@ class Bullet(Ball):
         """
         test = False
         number = 0
-        dx, dy = self.x - obj.x, self.y - obj.y
+        dx, dy = self.x - circle.x, self.y - circle.y
         if self.r != 0:
             while ((number * self.r <= (self.vx ** 2 + self.vy ** 2) ** 0.5) and
                    (self.vx ** 2 + self.vy ** 2 != 0) and
                    (self.r != 0)):
                 k = self.r / (self.vx ** 2 + self.vy ** 2) ** 0.5
-                dx, dy = self.x - k * self.vx - obj.x, self.y + k * self.vy - obj.y
-                if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) and not self.death_check():
+                dx, dy = self.x - k * self.vx - circle.x, self.y + k * self.vy - circle.y
+                if (dx ** 2 + dy ** 2 <= (self.r + circle.r) ** 2) and not self.death_check():
                     test = True
                 number += 0.5
-            if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) and not self.death_check():
+            if (dx ** 2 + dy ** 2 <= (self.r + circle.r) ** 2) and not self.death_check():
                 test = True
-        if test:
-            self.hit_reaction()
         return test
 
     def hit_reaction(self):
@@ -315,17 +323,23 @@ class Airship(Target):
 
     def __init__(self, surface=screen):
         super().__init__(surface)
-        self.r = rnd(10, 20)
+        self.r = rnd(15, 30)
         self.x = WIDTH + self.r
         self.vy = 0
         self.vx = - rnd(2, 5)
         self.y = rnd(self.r, HEIGHT - self.r)
+        self.circles = [Circle(self.x, self.y + self.r * 4, self.r * 5),
+                        Circle(self.x, self.y - self.r * 4, self.r * 5)]
 
     def draw(self):
         super().draw()
         if self.r != 0:
             airship_texture(self.x, self.y, self.r, self.vx)
 
+    def move(self):
+        super().move()
+        self.circles = [Circle(self.x, self.y + self.r * 4, self.r * 5),
+                        Circle(self.x, self.y - self.r * 4, self.r * 5)]
 
 
 def text_render(text):
@@ -459,8 +473,13 @@ while not finished:
             for t in targets:
                 if t.live:
                     live_sum = True
-                    if b.hit_test(t):
+                    hit = True
+                    for c in t.circles:
+                        if not b.hit_test(c):
+                            hit = False
+                    if hit:
                         t.hit()
+                        b.hit_reaction()
     for t in targets:
         t.move()
 
