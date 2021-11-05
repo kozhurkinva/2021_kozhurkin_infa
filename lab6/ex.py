@@ -107,7 +107,7 @@ class Gun:
         происходит при отпускании кнопки мыши.
         начальные значения компонент скорости мяча vx и vy зависят от положения мыши.
         """
-        Bullet(self)
+        Cannonball(self)
 
     def target_getting(self, event_end):
         """прицеливание. зависит от положения мыши."""
@@ -195,16 +195,7 @@ class Bullet(Ball):
         returns:
             возвращает true в случае столкновения мяча и цели. в противном случае возвращает false.
         """
-        test = False
-        number = 0
-        if self.r != 0:
-            while number * self.r <= (self.vx ** 2 + self.vy ** 2) ** 0.5:
-                k = self.r / (self.vx ** 2 + self.vy ** 2) ** 0.5
-                dx, dy = self.x - k * self.vx - obj.x, self.y + k * self.vy - obj.y
-                if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) or self.death_check():
-                    test = True
-                number += 0.5
-        return test
+        pass
 
     def move(self):
         if self.y >= self.FLOOR - self.r:
@@ -225,10 +216,27 @@ class Bullet(Ball):
         super().draw()
 
 
+class Cannonball(Bullet):
+
+    def hit_test(self, obj):
+        test = False
+        number = 0
+        if (self.r > 0) and (self.vx != 0) and (self.vy != 0):
+            while (number * self.r <= (self.vx ** 2 + self.vy ** 2) ** 0.5) and (self.r > 0):
+                k = self.r / (self.vx ** 2 + self.vy ** 2) ** 0.5
+                dx, dy = self.x - k * self.vx - obj.x, self.y + k * self.vy - obj.y
+                if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) and not self.death_check():
+                    test = True
+                number += 0.5
+        if test:
+            self.live = 0
+        return test
+
+
 class Bomb(Bullet):
 
     def __init__(self, bullet_gun, surface=screen):
-        super().__init__(bullet_gun, surface=screen)
+        super().__init__(bullet_gun, surface)
         self.vx = self.vy = 0
         self.boom = False
 
