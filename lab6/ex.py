@@ -200,13 +200,15 @@ class Bullet(Ball):
         number = 0
         dx, dy = self.x - obj.x, self.y - obj.y
         if self.r != 0:
-            while (number * self.r <= (self.vx ** 2 + self.vy ** 2) ** 0.5) and (self.vx ** 2 + self.vy ** 2 != 0):
+            while ((number * self.r <= (self.vx ** 2 + self.vy ** 2) ** 0.5) and
+                   (self.vx ** 2 + self.vy ** 2 != 0) and
+                   (self.r != 0)):
                 k = self.r / (self.vx ** 2 + self.vy ** 2) ** 0.5
                 dx, dy = self.x - k * self.vx - obj.x, self.y + k * self.vy - obj.y
-                if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) or self.death_check():
+                if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) and not self.death_check():
                     test = True
                 number += 0.5
-            if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) or self.death_check():
+            if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) and not self.death_check():
                 test = True
         if test:
             self.hit_reaction()
