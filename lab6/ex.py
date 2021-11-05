@@ -146,17 +146,20 @@ class Gun:
             self.x += math.cos(self.an) * 3
             self.y += math.sin(self.an) * 3
 
+    def draw_gun(self):
+        length = gun.length_start + self.f2_power * gun.d_length
+        gun_texture = pygame.Surface((round(length) * 2, round(gun.width)), pygame.SRCALPHA)
+        pygame.draw.rect(gun_texture, self.color, (length, 0, length, gun.width))
+        rotated_gun = pygame.transform.rotate(gun_texture, -self.an * 180 / math.pi)
+        self.screen.blit(rotated_gun, rotated_gun.get_rect(center=(self.x, self.y)))
+
     def draw(self):
         """чертит объект"""
         pygame.draw.circle(screen, YELLOW, (self.x, self.y - 80), 50)
         pygame.draw.circle(screen, BLACK, (self.x, self.y - 80), 50, 1)
         shar_texture(self.x, self.y - 80, 50, RED)
         pygame.draw.circle(screen, self.color, (self.x, self.y), 10)
-        length = gun.length_start + self.f2_power * gun.d_length
-        gun_texture = pygame.Surface((round(length) * 2, round(gun.width)), pygame.SRCALPHA)
-        pygame.draw.rect(gun_texture, self.color, (length, 0, length, gun.width))
-        rotated_gun = pygame.transform.rotate(gun_texture, -self.an * 180 / math.pi)
-        self.screen.blit(rotated_gun, rotated_gun.get_rect(center=(self.x, self.y)))
+        self.draw_gun()
 
     def power_up(self):
         """
@@ -169,6 +172,10 @@ class Gun:
         else:
             self.color = GREY
 
+    def possibility_check(self):
+        """проверяет возможность стрельбы"""
+        return True
+
 
 class Bomber(Gun):
 
@@ -177,6 +184,51 @@ class Bomber(Gun):
 
     def draw(self):
         airship_texture(self.x, self.y, 30, math.cos(self.an), YELLOW, RED)
+
+
+class LaserGun(Gun):
+
+    def possibility_check(self):
+        if self.y < HEIGHT - 22:
+            return False
+        else:
+            return True
+
+    def draw(self):
+        if not self.possibility_check():
+            parachute_texture(self.x, self.y, 30)
+        else:
+            pygame.draw.line(screen, BLACK, (self.x, self.y), (self.x - 11, self.y + 22))
+            pygame.draw.line(screen, BLACK, (self.x, self.y), (self.x, self.y + 22))
+            pygame.draw.line(screen, BLACK, (self.x, self.y), (self.x + 11, self.y + 22))
+            self.draw_gun()
+
+    def move(self):
+        if not self.possibility_check():
+            self.move_on = 1
+            super().move()
+            self.y += 3
+
+    def move_start(self):
+        pass
+
+    def move_end(self):
+        pass
+
+    def target_getting(self, event_end):
+        if not self.f2_on:
+            super().target_getting(event_end)
+
+    def fire2_end(self):
+        if self.f2_power >= 90:
+            Laser(self)
+            self.f2_power = 10
+            self.f2_on = 0
+
+    def power_up(self):
+        super(LaserGun, self).power_up()
+        if self.f2_power >= 90:
+            self.fire2_end()
 
 
 class Bullet(Ball):
@@ -249,6 +301,37 @@ class Cannonball(Bullet):
 
     def hit_reaction(self):
         self.live = 0
+
+
+class Laser(Bullet):
+
+    def __init__(self, bullet_gun, surface=screen):
+        super().__init__(bullet_gun, surface)
+        self.x = bullet_gun.x + (HEIGHT + WIDTH) * math.cos(bullet_gun.an)
+        self.y = bullet_gun.y + (HEIGHT + WIDTH) * math.sin(bullet_gun.an)
+        self.live = 5
+        self.gun = bullet_gun
+        self.color = RED
+        self.surface = surface
+
+    def draw(self):
+        if not self.death_check():
+            pygame.draw.line(screen, self.color, (self.x, self.y), (self.gun.x, self.gun.y), 10)
+            pygame.draw.circle(screen, self.color, (self.gun.x, self.gun.y), 7)
+
+    def move(self):
+        self.live -= 1
+
+    def hit_test(self, circle):
+        if circle.x != self.gun.x:
+            angle = math.atan((circle.y - self.gun.y) / (circle.x - self.gun.x))
+        else:
+            angle = math.pi / 2
+        if ((abs(math.sin(self.gun.an - angle)) * ((circle.x - self.gun.x) ** 2 + (circle.y - self.gun.y) ** 2) ** 0.5
+             <= circle.r) and not self.death_check()):
+            return True
+        else:
+            return False
 
 
 class Bomb(Bullet):
@@ -418,6 +501,20 @@ def airship_texture(x, y, r, speed, color=RED, color_basket=GREY):
     pygame.draw.line(screen, BLACK, (prop_x, y - round(r * 0.5)), (prop_x, y + round(r * 0.5)))
 
 
+def parachute_texture(x, y, r, color1=YELLOW, color2=CYAN, color_basket=RED):
+    """рисует парашют по входным данным"""
+    draw_circle_in_rect((x, y), r, color2, (x - r, y - r, 2 * r, round(r * 0.4)))
+    draw_circle_in_rect((x, y), r, color1, (x - r, y - r, 2 * r, round(r * 0.2)))
+    draw_circle_in_rect((x, y - round(r * 1.6)), r, color1, (x - r, y - round(r * 0.8), 2 * r, r))
+    draw_circle_in_rect((x, y - round(r * 5 / 3)), round(r * 4 / 3), color2, (x - r, y - round(r * 0.6), 2 * r, r))
+
+    pygame.draw.line(screen, BLACK, (x - round(r * 0.8), y - round(r * 0.6)), (x - round(r * 0.2), y + round(r * 0.4)))
+    pygame.draw.line(screen, BLACK, (x + round(r * 0.8), y - round(r * 0.6)), (x + round(r * 0.2), y + round(r * 0.4)))
+    pygame.draw.line(screen, BLACK, (x, y - round(r / 3)), (x, y + round(r * 0.4)))
+
+    pygame.draw.rect(screen, color_basket, (x - round(r * 0.2), y + round(r * 0.4), round(r * 0.4), round(r * 0.8 / 3)))
+
+
 bullet = 0
 
 clock = pygame.time.Clock()
@@ -447,14 +544,17 @@ while not finished:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                gun.fire2_start()
+                if gun.possibility_check():
+                    gun.fire2_start()
             elif event.button == 3:
                 gun.move_start()
-            else:
+            elif event.button == 2:
                 if isinstance(gun, Bomber):
                     gun = Gun(screen, gun.x, gun.y)
                 else:
                     gun = Bomber(screen, gun.x, gun.y)
+            elif event.button == 5:
+                gun = LaserGun(screen, gun.x, gun.y)
 
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
