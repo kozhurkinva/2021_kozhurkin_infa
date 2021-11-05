@@ -159,6 +159,15 @@ class Gun:
             self.color = GREY
 
 
+class Bomber(Gun):
+
+    def fire2_end(self):
+        Bomb(self)
+
+    def draw(self):
+        airship_texture(self.x, self.y, 30, 1, YELLOW, RED)
+
+
 class Bullet(Ball):
     """
     создание пули
@@ -214,6 +223,48 @@ class Bullet(Ball):
     def draw(self):
         pygame.draw.circle(self.screen, BLACK, (self.x - self.vx * 0.25, self.y + self.vy * 0.25), self.r)
         super().draw()
+
+
+class Bomb(Bullet):
+
+    def __init__(self, bullet_gun, surface=screen):
+        super().__init__(bullet_gun, surface=screen)
+        self.vx = self.vy = 0
+        self.boom = False
+
+    def move(self):
+        if not self.boom:
+            super().move()
+            if self.r == 30:
+                self.boom = True
+            if self.y >= HEIGHT - self.r:
+                if self.live > 10:
+                    self.live = 10
+                    self.vx = self.vy = 0
+                    self.r = 30
+        else:
+            self.live -= 1
+            self.death_check()
+
+    def hit_test(self, obj):
+        test = False
+        number = 0
+        dx, dy = self.x - obj.x, self.y - obj.y
+        if self.r != 0:
+            while (number * self.r <= (self.vx ** 2 + self.vy ** 2) ** 0.5) and (self.vx ** 2 + self.vy ** 2 != 0):
+                k = self.r / (self.vx ** 2 + self.vy ** 2) ** 0.5
+                dx, dy = self.x - k * self.vx - obj.x, self.y + k * self.vy - obj.y
+                if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) or self.death_check():
+                    test = True
+                number += 0.5
+            if (dx ** 2 + dy ** 2 <= (self.r + obj.r) ** 2) or self.death_check():
+                test = True
+        if test:
+            if self.live > 10:
+                self.live = 10
+                self.vx = self.vy = 0
+                self.r = 30
+        return test
 
 
 class Target(Ball):
@@ -299,7 +350,7 @@ def draw_ellipse_in_rect(ellipse_rect, ellipse_color, shape_rect, ellipse_width=
     screen.blit(shape, shape_rect[0:2])
 
 
-def draw_circle_in_rect(circle_center, r, circle_color,  shape_rect, circle_width=0):
+def draw_circle_in_rect(circle_center, r, circle_color, shape_rect, circle_width=0):
     """нужна для прорисовки сектора круга"""
     shape = pygame.Surface(shape_rect[2:4], pygame.SRCALPHA)
     pygame.draw.circle(shape, circle_color, (circle_center[0] - shape_rect[0], circle_center[1] - shape_rect[1]),
@@ -379,8 +430,14 @@ while not finished:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 gun.fire2_start()
-            else:
+            elif event.button == 3:
                 gun.move_start()
+            else:
+                if isinstance(gun, Bomber):
+                    gun = Gun(screen, gun.x, gun.y)
+                else:
+                    gun = Bomber(screen, gun.x, gun.y)
+
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 gun.fire2_end()
